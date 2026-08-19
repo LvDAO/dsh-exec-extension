@@ -28,7 +28,7 @@
 - id: approval
   inject: [headlessStartup]
   config:
-    policy: !!js ctx.headlessStartup.approvalPolicy ?? ((process.env.DSH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask')
+    policy: !!js "ctx.headlessStartup.approvalPolicy ?? ((process.env.DSH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask')"
 
 - id: tools
   inject: [headlessStartup]
