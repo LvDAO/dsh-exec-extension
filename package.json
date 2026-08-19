@@ -1,0 +1,51 @@
+{
+  "name": "dsh-exec-extension",
+  "version": "0.1.0",
+  "description": "dsh bundle: replace headless-startup with per-invocation --model / --effort / --provider, without writing settings",
+  "license": "MIT",
+  "type": "module",
+  "main": "./js/startup.js",
+  "exports": {
+    ".": "./js/startup.js",
+    "./startup": "./js/startup.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "js/startup.js",
+    "js/generated/native.js",
+    "js/generated/native.d.ts",
+    "js/generated/native_bg.wasm",
+    "js/generated/native_bg.wasm.d.ts",
+    "js/generated/package.json",
+    "cordis.patch.yml",
+    "src",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "cargo build --release --target wasm32-unknown-unknown && wasm-bindgen --target nodejs --out-dir js/generated --out-name native target/wasm32-unknown-unknown/release/dsh_exec_extension.wasm && node -e \"require('fs').writeFileSync('js/generated/package.json', JSON.stringify({type:'commonjs'}))\"",
+    "test": "cargo test && node --test js/startup.test.js js/native.test.js js/patch.test.js",
+    "prepare": "npm run build"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-headless": ">=0.1.0-rc.7"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "headless",
+    "cordis"
+  ]
+}

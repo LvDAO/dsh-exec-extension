@@ -1,0 +1,14 @@
+# dsh-exec-extension: replace stock headless-startup so `--model` is a known option.
+#
+# Cordis skips an id-targeted patch when `name` does not match the existing
+# row (`patch: name mismatch ... skipping`). Changing this row's module by
+# restating `name:` therefore does not work. Disable the stock commander
+# (it only declares `[task...]` and would reject `--model`) and insert a
+# replacement that still provides `headlessStartup` for headless-runner.
+
+- id: headless-startup
+  disabled: true
+
+- insert:
+    - id: exec-extension-startup
+      name: dsh-exec-extension/startup
