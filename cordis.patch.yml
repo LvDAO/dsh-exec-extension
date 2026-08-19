@@ -1,10 +1,16 @@
-# dsh-exec-extension: replace stock headless-startup so `--model` is a known option.
+# dsh-exec-extension: replace stock headless-startup so per-invocation flags
+# are a known app command. Extra `headlessStartup` fields are read by later
+# rows via `!!js ctx.headlessStartup.*` (the same pattern as web `--port`).
 #
 # Cordis skips an id-targeted patch when `name` does not match the existing
 # row (`patch: name mismatch ... skipping`). Changing this row's module by
 # restating `name:` therefore does not work. Disable the stock commander
 # (it only declares `[task...]` and would reject `--model`) and insert a
 # replacement that still provides `headlessStartup` for headless-runner.
+#
+# An id-targeted patch replaces the named keys entirely, so sandbox/approval
+# restates the full `config` they need. Yaml `inject` is merged into the
+# plugin's own inject list (sessions stays on sandbox-policy).
 
 - id: headless-startup
   disabled: true
@@ -12,3 +18,19 @@
 - insert:
     - id: exec-extension-startup
       name: dsh-exec-extension/startup
+
+- id: sandbox-policy
+  inject: [headlessStartup]
+  config:
+    mode: !!js ctx.headlessStartup.permissionMode ?? process.env.DSH_PERMISSION_MODE ?? 'workspace-write'
+    workspaceRoot: !!js ctx.headlessStartup.cwd ?? process.cwd()
+
+- id: approval
+  inject: [headlessStartup]
+  config:
+    policy: !!js ctx.headlessStartup.approvalPolicy ?? ((process.env.DSH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask')
+
+- id: tools
+  inject: [headlessStartup]
+  config:
+    mode: !!js ctx.headlessStartup.toolsMode ?? process.env.DSH_TOOLS_MODE

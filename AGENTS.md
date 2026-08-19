@@ -1,46 +1,52 @@
 # dsh-exec-extension
 
-Official-pattern DeepSeek Harness **bundle** (`package.json` → `dsh.bundle.patch`). Install with the stock plugin channel:
+Official-pattern DeepSeek Harness **bundle**. One-shot exec in the spirit of `opencode run` and `pi -p`: argv + piped stdin, file attachments, this-process model/sandbox flags, no settings writes.
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
 dsh plugin --profile exec add <this-package>
+dsh --profile exec --help
 ```
 
-Pin headless to **0.1.0-rc.7** (or the `next` tag). npm `latest` for that package is still an older rc.
+Pin headless to **0.1.0-rc.7** (or `next`). Use a dedicated profile; do not add this to stock `headless`.
 
-## What it replaces
+## CLI
 
-Stock `headless-startup` only declares `[task...]`. This bundle **disables** that row and inserts `exec-extension-startup` → `dsh-exec-extension/startup`. Stock `headless-runner` is unchanged: it still injects `headlessStartup = { task }` and builds one Agent from `ctx.agentDefaultModel.currentSelection()`.
-
-Do **not** add this bundle to a profile that must keep `dsh --profile headless --model x "t"` failing as an unknown option. Use a dedicated profile (example name: `exec`).
-
-## CLI (after launcher flags)
-
-Same handoff as stock web/headless: the launcher keeps `--profile` / `--dump-config`; this app owns the rest via `parseCmdline` + commander.
+Launcher flags first (`--profile`, `--dump-config`). App flags after:
 
 ```text
-dsh --profile exec [options] [--] [task...]
+dsh --profile exec [options] [--] [task|-]
+cat README.md | dsh --profile exec "summarize this"
+dsh --profile exec @notes.md "answer from the notes"
 ```
 
 | Flag | Meaning |
 |------|---------|
-| `-m, --model <id>` | This-process default model |
-| `--effort`, `--reasoning-effort` `<off\|high\|max>` | This-process `reasoningEffort` |
-| `--provider <id>` | This-process provider |
-| `-C, --cwd`, `--cd <path>` | `process.chdir` before the runner (it uses `process.cwd()`) |
+| `-m, --model` | This-process model |
+| `--effort`, `--reasoning-effort` | `off\|high\|max` |
+| `--thinking` | Pi thinking tiers; `xhigh`/`max` → `max`, `minimal`/`low`/`medium`/`high` → `high` |
+| `--provider` | This-process provider |
+| `-C, --cwd` / `--cd` / `--dir` | Working directory (published on `headlessStartup.cwd` so sandbox-policy sees it) |
 | `--timeout <seconds>` | `appExit(1)` after N seconds |
-| `--config <key=value>` | Repeatable overlay: `model`, `provider`, `effort` / `reasoningEffort` / `model_reasoning_effort` |
-| `--env <KEY=VALUE>` | Repeatable `process.env` for this invocation |
-| `--print-selection` | Print overlaid selection JSON and exit; task optional |
-| `-h, --help` | App help (lists the flags above) |
-| `-V, --version` | This extension version |
+| `-s, --sandbox` / `--permission-mode` | `read-only` \| `workspace-write` \| `danger-full-access` |
+| `--approval ask\|never\|allow` | `ask` fail-closes without a UI; `never` auto-denies; `allow` auto-grants |
+| `--full-auto` | workspace-write + auto-allow (CI) |
+| `--yolo` / `--dangerously-skip-permissions` | danger-full-access + never (OpenCode) |
+| `--tools-mode native\|code\|both` | Tools presentation |
+| `-f, --file` / `@path` | Attach file text into the task |
+| `--output-schema <path>` | Prompt-level JSON Schema constraint (not constrained decode) |
+| `-o, --output-last-message <path>` | Also write the final assistant text |
+| `--format text\|json` / `--mode json` | `json` is session-event JSONL (OpenCode/Pi) |
+| `-c, --config key=value` | Repeatable overlay |
+| `--env KEY=VALUE` / `--api-key` | Process env only |
+| `--print-selection` | Print overlaid selection JSON and exit |
 
-Unknown flags still error. Overlay wraps `currentSelection()` in memory and never calls `saveSelection()`.
+Unknown flags error. Overlay never calls `saveSelection()`.
+
+`headlessStartup` is `{ task, cwd, permissionMode, approvalPolicy, autoApprove, toolsMode?, format }`. Stock `headless-runner` still only reads `task`. sandbox-policy, approval, and tools inject the service.
 
 ## Constraints
 
-- Node ≥ 22.19
-- Effort enum is `off | high | max` only (`xhigh` is rejected; use `max`)
-- Credentials stay process env (`DEEPSEEK_API_KEY` / `--env`); this plugin does not read credential files
-- WASM overlay is committed under `js/generated/`; `npm prepare` skips rustc when that glue exists
+- Node ≥ 22.19; effort on `--effort` is `off\|high\|max` only
+- Credentials: `DEEPSEEK_API_KEY` / `--api-key` / `--env`
+- Committed WASM under `js/generated/`; `prepare` skips rustc when present

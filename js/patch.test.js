@@ -24,3 +24,13 @@ test('bundle patch inserts a replacement that still mounts this package startup'
   assert.match(patch, /id:\s*exec-extension-startup/)
   assert.match(patch, /name:\s*dsh-exec-extension\/startup/)
 })
+
+test('bundle patch delays sandbox, approval, and tools until headlessStartup exists', () => {
+  assert.match(patch, /id:\s*sandbox-policy/)
+  assert.match(patch, /id:\s*approval/)
+  assert.match(patch, /id:\s*tools/)
+  assert.match(patch, /ctx\.headlessStartup\.permissionMode/)
+  assert.match(patch, /ctx\.headlessStartup\.cwd/)
+  assert.match(patch, /ctx\.headlessStartup\.approvalPolicy/)
+  assert.match(patch, /ctx\.headlessStartup\.toolsMode/)
+})

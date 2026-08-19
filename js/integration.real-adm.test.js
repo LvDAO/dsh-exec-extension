@@ -49,7 +49,7 @@ test('real AgentDefaultModelConfig overlay: --model is not the task', async (t) 
   })
   apply(ctx)
 
-  assert.deepEqual(ctx.get(HEADLESS_STARTUP_SERVICE), { task: 'prove X' })
+  assert.equal(ctx.get(HEADLESS_STARTUP_SERVICE).task, 'prove X')
   assert.deepEqual(ctx.agentDefaultModel.currentSelection(), {
     provider: 'deepseek-official',
     model: 'deepseek-v4-pro',

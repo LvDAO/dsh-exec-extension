@@ -1,9 +1,11 @@
 /**
  * Replacement for `@deepseek-ai/dsh-headless/startup`.
  *
- * Official app-CLI pattern: `parseCmdline` + commander (same as stock
- * headless/web startup). Overlay of `ctx.agentDefaultModel.currentSelection()`
- * stays in-process (Rust WASM) and never calls `saveSelection()`.
+ * Official app-CLI pattern: `parseCmdline` + commander. Overlay of
+ * `ctx.agentDefaultModel.currentSelection()` stays in-process (Rust WASM)
+ * and never calls `saveSelection()`. The provided `headlessStartup` object
+ * still has `task` for stock `headless-runner`; extra fields are for
+ * sandbox-policy / approval / tools rows that inject this service.
  *
  * @module dsh-exec-extension/startup
  */
@@ -12,12 +14,13 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseCmdline, internals } from '@deepseek-ai/dsh-cmdline'
-import { makeProgram, resolveInvocation } from './command.js'
+import { io, makeProgram, resolveInvocation } from './command.js'
+import { installAutoApprove, installOutputHooks } from './output.js'
 
 const require = createRequire(import.meta.url)
 const native = require(join(dirname(fileURLToPath(import.meta.url)), 'generated', 'native.js'))
 
-export { internals }
+export { internals, io }
 
 /** Stable Cordis plugin name (row id is `exec-extension-startup`). */
 export const name = 'dsh-exec-extension'
@@ -38,7 +41,7 @@ export const HEADLESS_STARTUP_SERVICE = 'headlessStartup'
 /**
  * Overlay this-process flags onto every `currentSelection()` read in this process.
  *
- * @param {{ agentDefaultModel: { currentSelection: () => ModelSelection }, effect?: (fn: () => () => void) => void }} ctx
+ * @param {{ agentDefaultModel: { currentSelection: () => ModelSelection } }} ctx
  * @param {{ model?: string, provider?: string, effort?: 'off' | 'high' | 'max' }} overrides
  */
 function installOverlay(ctx, overrides) {
@@ -58,18 +61,23 @@ function onDispose(effect, restore) {
   if (typeof effect === 'function') effect(() => restore)
 }
 
+function runnerIo() {
+  return require('@deepseek-ai/dsh-headless').internals
+}
+
 /**
  * @param {{
  *   agentDefaultModel: { currentSelection: () => ModelSelection, saveSelection?: unknown },
  *   provide: (name: string, value: unknown) => void,
  *   get: (name: string) => unknown,
  *   effect?: (fn: () => () => void) => void,
+ *   on?: (event: string, handler: (...args: unknown[]) => unknown) => (() => void) | void,
  * }} ctx
  */
 export function apply(ctx) {
   const program = makeProgram()
   program.action(() => {
-    const invocation = resolveInvocation(program)
+    const invocation = resolveInvocation(program, io)
     installOverlay(ctx, invocation.overrides)
 
     for (const { key, value } of invocation.env) {
@@ -86,7 +94,7 @@ export function apply(ctx) {
       })
     }
 
-    if (invocation.cwd !== undefined) {
+    if (invocation.cwd !== process.cwd()) {
       const previous = process.cwd()
       process.chdir(invocation.cwd)
       onDispose(ctx.effect, () => {
@@ -112,7 +120,27 @@ export function apply(ctx) {
       })
     }
 
-    ctx.provide(HEADLESS_STARTUP_SERVICE, { task: invocation.task })
+    if (invocation.autoApprove) installAutoApprove(ctx)
+
+    if (invocation.format === 'json' || invocation.outputPath !== undefined) {
+      installOutputHooks({
+        ctx,
+        format: invocation.format,
+        outputPath: invocation.outputPath,
+        cmdline: internals,
+        runnerIo: runnerIo(),
+      })
+    }
+
+    ctx.provide(HEADLESS_STARTUP_SERVICE, {
+      task: invocation.task,
+      cwd: process.cwd(),
+      permissionMode: invocation.permissionMode,
+      approvalPolicy: invocation.approvalPolicy,
+      autoApprove: invocation.autoApprove,
+      ...invocation.toolsMode !== undefined ? { toolsMode: invocation.toolsMode } : {},
+      format: invocation.format,
+    })
   })
   parseCmdline(ctx, program)
 }

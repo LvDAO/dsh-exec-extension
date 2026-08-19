@@ -3,11 +3,18 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
+import { io } from './command.js'
 import { apply, HEADLESS_STARTUP_SERVICE, internals } from './startup.js'
+
+io.isTTY = () => true
+io.readStdin = () => {
+  throw new Error('startup tests must not read stdin')
+}
 
 function mockCtx(args, selection = { provider: 'deepseek-official', model: 'deepseek-v4-flash' }) {
   const exits = []
   const disposers = []
+  const listeners = []
   let saveCalls = 0
   const ctx = {
     agentDefaultModel: {
@@ -31,10 +38,15 @@ function mockCtx(args, selection = { provider: 'deepseek-official', model: 'deep
     effect(factory) {
       disposers.push(factory())
     },
+    on(event, handler) {
+      listeners.push({ event, handler })
+      return () => {}
+    },
   }
   return {
     ctx,
     exits,
+    listeners,
     saveCalls: () => saveCalls,
     dispose() {
       for (const restore of disposers.splice(0).reverse()) restore()
@@ -58,7 +70,12 @@ test('apply provides headlessStartup.task and overlays model/effort in memory', 
   const { ctx, exits, saveCalls, dispose } = mockCtx(['--model', 'deepseek-v4-pro', '--effort', 'max', 'prove', 'X'])
   try {
     apply(ctx)
-    assert.deepEqual(ctx.provided[HEADLESS_STARTUP_SERVICE], { task: 'prove X' })
+    const startup = ctx.provided[HEADLESS_STARTUP_SERVICE]
+    assert.equal(startup.task, 'prove X')
+    assert.equal(startup.permissionMode, 'workspace-write')
+    assert.equal(startup.approvalPolicy, 'ask')
+    assert.equal(startup.format, 'text')
+    assert.equal(startup.cwd, process.cwd())
     assert.deepEqual(ctx.agentDefaultModel.currentSelection(), {
       provider: 'deepseek-official',
       model: 'deepseek-v4-pro',
@@ -79,7 +96,7 @@ test('omitting --model and --effort matches the deployment selection', () => {
   })
   try {
     apply(ctx)
-    assert.deepEqual(ctx.provided[HEADLESS_STARTUP_SERVICE], { task: 'run the tests' })
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].task, 'run the tests')
     assert.deepEqual(ctx.agentDefaultModel.currentSelection(), {
       provider: 'deepseek-official',
       model: 'deepseek-v4-flash',
@@ -109,13 +126,10 @@ test('--help lists flags, exits 0, and does not provide the service', () => {
   const out = withCaptured('stdout', () => apply(ctx))
   try {
     assert.match(out, /--model/)
-    assert.match(out, /--effort/)
-    assert.match(out, /--provider/)
-    assert.match(out, /--cwd/)
-    assert.match(out, /--timeout/)
-    assert.match(out, /--config/)
-    assert.match(out, /--print-selection/)
-    assert.match(out, /--env/)
+    assert.match(out, /--sandbox/)
+    assert.match(out, /--file/)
+    assert.match(out, /--format/)
+    assert.match(out, /--full-auto/)
     assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE], undefined)
     assert.deepEqual(exits, [0])
   } finally {
@@ -124,7 +138,7 @@ test('--help lists flags, exits 0, and does not provide the service', () => {
 })
 
 test('unknown option exits 1 without providing the service', () => {
-  const { ctx, exits, dispose } = mockCtx(['--sandbox', 't'])
+  const { ctx, exits, dispose } = mockCtx(['--not-a-real-flag', 't'])
   const err = withCaptured('stderr', () => apply(ctx))
   try {
     assert.match(err, /unknown option/)
@@ -167,7 +181,7 @@ test('--config overlays after named flags', () => {
   try {
     apply(ctx)
     assert.equal(ctx.agentDefaultModel.currentSelection().model, 'b')
-    assert.deepEqual(ctx.provided[HEADLESS_STARTUP_SERVICE], { task: 't' })
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].task, 't')
   } finally {
     dispose()
   }
@@ -180,6 +194,7 @@ test('-C changes process.cwd until dispose', () => {
   try {
     apply(ctx)
     assert.equal(process.cwd(), dir)
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].cwd, dir)
     dispose()
     assert.equal(process.cwd(), previous)
   } finally {
@@ -205,7 +220,7 @@ test('--timeout still provides the task and does not exit immediately', () => {
   const { ctx, exits, dispose } = mockCtx(['--timeout', '60', 't'])
   try {
     apply(ctx)
-    assert.deepEqual(ctx.provided[HEADLESS_STARTUP_SERVICE], { task: 't' })
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].task, 't')
     assert.deepEqual(exits, [])
   } finally {
     dispose()
@@ -217,6 +232,30 @@ test('-m is an alias of --model', () => {
   try {
     apply(ctx)
     assert.equal(ctx.agentDefaultModel.currentSelection().model, 'alias-model')
+  } finally {
+    dispose()
+  }
+})
+
+test('--sandbox and --full-auto land on the headlessStartup service', () => {
+  const { ctx, listeners, dispose } = mockCtx(['--sandbox', 'read-only', '--full-auto', 't'])
+  try {
+    apply(ctx)
+    const startup = ctx.provided[HEADLESS_STARTUP_SERVICE]
+    assert.equal(startup.permissionMode, 'read-only')
+    assert.equal(startup.autoApprove, true)
+    assert.equal(startup.approvalPolicy, 'ask')
+    assert.equal(listeners.some((entry) => entry.event === 'approval/request'), true)
+  } finally {
+    dispose()
+  }
+})
+
+test('--tools-mode is published on the service', () => {
+  const { ctx, dispose } = mockCtx(['--tools-mode', 'code', 't'])
+  try {
+    apply(ctx)
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].toolsMode, 'code')
   } finally {
     dispose()
   }
