@@ -41,10 +41,10 @@ dsh --profile <profile> [--model <id>] [--effort off|high|max] [--provider <id>]
 
 ## 安装
 
-profile 上必须**先有** `@deepseek-ai/dsh-headless`，再安装本 bundle（`dsh plugin add` 追加到 bundles 末尾）。新 profile 初始只有 `dsh-base`：
+profile 上必须**先有** `@deepseek-ai/dsh-headless@0.1.0-rc.7`（npm `latest` 仍是旧的 `0.0.1-rc.1`，请钉 `0.1.0-rc.7` 或 `next` 标签），再安装本 bundle（`dsh plugin add` 追加）。新 profile 初始只有 `dsh-base`。Node **≥ 22.19**（dsh 使用 `node:zlib` 的 zstd）。
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
 dsh plugin --profile exec add ./dsh-exec-extension
 ```
 
@@ -84,4 +84,9 @@ npm test
 npm run build
 ```
 
-兼容铰链：`headlessStartup` 服务名；请钉住 `@deepseek-ai/dsh-headless` ≥ `0.1.0-rc.7`。
+兼容铰链：`headlessStartup` 服务名；请钉住 `@deepseek-ai/dsh-headless` `0.1.0-rc.7`（npm `next`）。
+
+```sh
+npm test
+DSH_BIN=/path/to/dsh npm run acceptance
+```

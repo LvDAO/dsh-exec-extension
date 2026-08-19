@@ -24,11 +24,13 @@
     "Cargo.lock",
     "README.md",
     "README.zh.md",
-    "LICENSE"
+    "LICENSE",
+    "scripts/acceptance.sh"
   ],
   "scripts": {
     "build": "cargo build --release --target wasm32-unknown-unknown && wasm-bindgen --target nodejs --out-dir js/generated --out-name native target/wasm32-unknown-unknown/release/dsh_exec_extension.wasm && node -e \"require('fs').writeFileSync('js/generated/package.json', JSON.stringify({type:'commonjs'}))\"",
-    "test": "cargo test && node --test js/startup.test.js js/native.test.js js/patch.test.js",
+    "test": "cargo test && node --test js/startup.test.js js/native.test.js js/patch.test.js js/integration.real-adm.test.js",
+    "acceptance": "bash scripts/acceptance.sh",
     "prepare": "npm run build"
   },
   "dsh": {
@@ -37,7 +39,7 @@
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-headless": ">=0.1.0-rc.7"
+    "@deepseek-ai/dsh-headless": "0.1.0-rc.7"
   },
   "engines": {
     "node": ">=22.19"

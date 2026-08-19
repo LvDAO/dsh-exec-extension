@@ -43,10 +43,10 @@ If `--model` is present, it is used as-is. Model ids are not special-cased.
 
 ## Install
 
-Requires `@deepseek-ai/dsh-headless` **already on the profile**, then this bundle **after** it (`dsh plugin add` appends). A new profile starts as `dsh-base` only:
+Requires `@deepseek-ai/dsh-headless@0.1.0-rc.7` **already on the profile** (npm `latest` for that package is an older `0.0.1-rc.1`; pin `0.1.0-rc.7` or the `next` tag), then this bundle **after** it (`dsh plugin add` appends). A new profile starts as `dsh-base` only. Node **≥ 22.19** (dsh uses `node:zlib` zstd).
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
 dsh plugin --profile exec add ./dsh-exec-extension
 ```
 
@@ -90,4 +90,11 @@ npm test          # cargo test && node --test
 npm run build     # wasm32-unknown-unknown → js/generated/
 ```
 
-Pin: `@deepseek-ai/dsh-headless` ≥ `0.1.0-rc.7`. The compatibility hinge is the `headlessStartup` service name.
+Pin: `@deepseek-ai/dsh-headless` `0.1.0-rc.7` (npm `next`). The compatibility hinge is the `headlessStartup` service name.
+
+Live CLI checks (needs `dsh` on PATH, Node ≥ 22.19):
+
+```sh
+npm test
+DSH_BIN=/path/to/dsh npm run acceptance
+```
