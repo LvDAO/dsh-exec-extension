@@ -3,7 +3,7 @@ name = "dsh-exec-extension"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Replace dsh headless-startup with per-invocation --model/--effort/--provider"
+description = "In-process overlay of dsh agentDefaultModel.currentSelection() (CLI is commander in js/)"
 repository = "https://github.com/deepseek-ai/deepseek-harness"
 publish = false
 

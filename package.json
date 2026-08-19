@@ -1,7 +1,7 @@
 {
   "name": "dsh-exec-extension",
   "version": "0.1.0",
-  "description": "dsh bundle: replace headless-startup with per-invocation --model / --effort / --provider, without writing settings",
+  "description": "Official-pattern dsh bundle: replace headless-startup with per-invocation CLI flags without writing settings",
   "license": "MIT",
   "type": "module",
   "main": "./js/startup.js",
@@ -13,6 +13,7 @@
   },
   "files": [
     "js/startup.js",
+    "js/command.js",
     "js/generated/native.js",
     "js/generated/native.d.ts",
     "js/generated/native_bg.wasm",
@@ -24,19 +25,25 @@
     "Cargo.lock",
     "README.md",
     "README.zh.md",
+    "AGENTS.md",
     "LICENSE",
-    "scripts/acceptance.sh"
+    "scripts/acceptance.sh",
+    "scripts/prepare.mjs"
   ],
   "scripts": {
     "build": "cargo build --release --target wasm32-unknown-unknown && wasm-bindgen --target nodejs --out-dir js/generated --out-name native target/wasm32-unknown-unknown/release/dsh_exec_extension.wasm && node -e \"require('fs').writeFileSync('js/generated/package.json', JSON.stringify({type:'commonjs'}))\"",
-    "test": "cargo test && node --test js/startup.test.js js/native.test.js js/patch.test.js js/integration.real-adm.test.js",
+    "test": "cargo test && node --test js/startup.test.js js/command.test.js js/native.test.js js/patch.test.js js/integration.real-adm.test.js",
     "acceptance": "bash scripts/acceptance.sh",
-    "prepare": "npm run build"
+    "prepare": "node scripts/prepare.mjs"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-cmdline": "^0.1.0-rc.7",
+    "commander": "^15.0.0"
   },
   "peerDependencies": {
     "@deepseek-ai/dsh-headless": "0.1.0-rc.7"
@@ -48,6 +55,7 @@
     "dsh",
     "deepseek-harness",
     "headless",
-    "cordis"
+    "cordis",
+    "dsh-extension"
   ]
 }

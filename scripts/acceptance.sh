@@ -34,16 +34,21 @@ printf '%s\n' "$dump" | grep -q 'name: dsh-exec-extension/startup'
 
 echo "== exec --help lists flags =="
 help="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --help)"
-printf '%s\n' "$help" | grep -q -- '--model'
-printf '%s\n' "$help" | grep -q -- '--effort'
-printf '%s\n' "$help" | grep -q -- '--provider'
+printf '%s\n' "$help"
+for flag in --model --effort --reasoning-effort --provider --cwd --timeout --config --print-selection --env; do
+  printf '%s\n' "$help" | grep -q -- "$flag"
+done
 
 echo "== missing task / unknown option =="
-DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec 2>&1 | grep -q 'a task is required' || true
 task_out="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec 2>&1 || true)"
 printf '%s\n' "$task_out" | grep -q 'a task is required'
 unk_out="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --sandbox t 2>&1 || true)"
 printf '%s\n' "$unk_out" | grep -q "unknown option '--sandbox'"
+
+echo "== --print-selection does not require a task =="
+sel_out="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --print-selection --model deepseek-v4-pro --effort max 2>&1 || true)"
+printf '%s\n' "$sel_out"
+printf '%s\n' "$sel_out" | grep -q 'deepseek-v4-pro'
 
 echo "== --model/--effort do not create settings.yaml =="
 DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --model deepseek-v4-pro --effort max prove X >/dev/null 2>&1 || true

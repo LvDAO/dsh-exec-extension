@@ -1,4 +1,4 @@
-//! App argv parser for the replacement headless-startup command.
+//! Hosted argv parser used by WASM tests. The live CLI is commander in `js/command.js`.
 
 use crate::effort::Effort;
 use crate::overlay::SelectionOverrides;
