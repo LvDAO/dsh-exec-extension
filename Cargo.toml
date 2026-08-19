@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "In-process overlay of dsh agentDefaultModel.currentSelection() (CLI is commander in js/)"
-repository = "https://github.com/deepseek-ai/deepseek-harness"
+repository = "https://github.com/LvDAO/dsh-exec-extension"
 publish = false
 
 [lib]

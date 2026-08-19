@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Official-pattern dsh bundle: replace headless-startup with per-invocation CLI flags without writing settings",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LvDAO/dsh-exec-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LvDAO/dsh-exec-extension/issues"
+  },
+  "homepage": "https://github.com/LvDAO/dsh-exec-extension#readme",
   "type": "module",
   "main": "./js/startup.js",
   "exports": {
