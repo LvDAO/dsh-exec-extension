@@ -139,8 +139,8 @@ export function makeProgram() {
     .option('-s, --sandbox <mode>', 'read-only | workspace-write | danger-full-access')
     .option('--permission-mode <mode>', 'alias of --sandbox')
     .option('--approval <ask|never|allow>', 'headless approval: ask (fail-closed), never (auto-deny), allow (auto-grant)')
-    .option('--full-auto', 'workspace-write + auto-allow approvals (CI)', false)
-    .option('--yolo', 'danger-full-access + approval never (OpenCode)', false)
+    .option('--full-auto', 'auto-allow approvals (CI). Default sandbox stays workspace-write; explicit --sandbox is kept; does not escalate to danger-full-access', false)
+    .option('--yolo', 'preset: danger-full-access + approval never (wins over --sandbox/--approval/--full-auto)', false)
     .option('--dangerously-skip-permissions', 'alias of --yolo', false)
     .option('--tools-mode <native|code|both>', 'this-process tools presentation')
     .option('-f, --file <path>', 'attach a file into the task (repeatable, OpenCode -f / Pi @file)', collect, [])
@@ -223,7 +223,10 @@ export function resolveInvocation(program, host = io) {
   const toolsRaw = config.toolsMode ?? config.tools_mode ?? options.toolsMode
   if (toolsRaw !== undefined) toolsMode = parseToolsMode(toolsRaw, program)
 
-  const format = parseFormat(options.mode ?? config.format ?? config.mode ?? options.format ?? 'text', program)
+  const format = parseFormat(
+    config.format ?? config.mode ?? options.mode ?? options.format ?? 'text',
+    program,
+  )
 
   let timeoutMs
   if (options.timeout !== undefined) {

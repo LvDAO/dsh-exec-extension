@@ -65,6 +65,9 @@ function runnerIo() {
   return require('@deepseek-ai/dsh-headless').internals
 }
 
+/** Tests replace `runnerIo` so `--format json` / `-o` do not wrap the real headless module. */
+export const bindings = { runnerIo }
+
 /**
  * @param {{
  *   agentDefaultModel: { currentSelection: () => ModelSelection, saveSelection?: unknown },
@@ -128,7 +131,7 @@ export function apply(ctx) {
         format: invocation.format,
         outputPath: invocation.outputPath,
         cmdline: internals,
-        runnerIo: runnerIo(),
+        runnerIo: bindings.runnerIo(),
       })
     }
 

@@ -19,3 +19,7 @@ jobs:
         run: cargo install wasm-bindgen-cli --version 0.2.100 --locked
       - run: npm test
       - run: npm run build
+      - name: Install dsh CLI
+        run: npm install --global @deepseek-ai/dsh@0.1.0-rc.7
+      - name: Live acceptance
+        run: npm run acceptance

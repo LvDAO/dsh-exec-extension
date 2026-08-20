@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { closeSync, ftruncateSync, mkdtempSync, openSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { Command } from 'commander'
-import { makeProgram, parseEffort, resolveInvocation } from './command.js'
+import { io, makeProgram, parseEffort, resolveInvocation } from './command.js'
 import { parseThinking, resolvePolicy } from './policy.js'
-import { assembleTask, splitAtFiles } from './task.js'
+import { assembleTask, MAX_FILE_BYTES, splitAtFiles } from './task.js'
 
 const testIo = {
   isTTY: () => true,
@@ -147,7 +147,7 @@ test('--output-schema appends a prompt-level constraint', () => {
   assert.match(invocation.task, /"type": "object"/)
 })
 
-test('--full-auto auto-approves without changing danger-full-access', () => {
+test('--full-auto auto-approves and keeps default workspace-write', () => {
   const invocation = parse(['--full-auto', 't'])
   assert.equal(invocation.permissionMode, 'workspace-write')
   assert.equal(invocation.autoApprove, true)
@@ -182,6 +182,8 @@ test('help text lists the extra flags', () => {
   for (const flag of [
     '--model', '--effort', '--sandbox', '--approval', '--full-auto', '--file',
     '--format', '--output-schema', '--output-last-message', '--tools-mode', '--thinking',
+    '--yolo', '--timeout', '--api-key', '--print-selection', '--permission-mode',
+    '--cwd', '--env', '--dangerously-skip-permissions', '--provider', '--version',
   ]) {
     assert.match(text, new RegExp(flag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   }
@@ -210,4 +212,142 @@ test('resolvePolicy: danger-full-access defaults approval to never', () => {
   const policy = resolvePolicy({ sandbox: 'danger-full-access', program })
   assert.equal(policy.approvalPolicy, 'never')
   assert.equal(policy.autoApprove, false)
+})
+
+test('--provider is a this-process overlay and not part of the task', () => {
+  const invocation = parse(['--provider', 'custom-route', 'do', 'it'])
+  assert.equal(invocation.overrides.provider, 'custom-route')
+  assert.equal(invocation.task, 'do it')
+})
+
+test('--permission-mode is an alias of --sandbox; -s wins if both are set', () => {
+  assert.equal(parse(['--permission-mode', 'read-only', 't']).permissionMode, 'read-only')
+  const both = parse(['--permission-mode', 'danger-full-access', '--sandbox', 'read-only', 't'])
+  assert.equal(both.permissionMode, 'read-only')
+})
+
+test('--dangerously-skip-permissions is an alias of --yolo', () => {
+  const invocation = parse(['--dangerously-skip-permissions', 't'])
+  assert.equal(invocation.permissionMode, 'danger-full-access')
+  assert.equal(invocation.approvalPolicy, 'never')
+  assert.equal(invocation.autoApprove, false)
+})
+
+test('--yolo wins over --full-auto, --sandbox, and --approval', () => {
+  const invocation = parse([
+    '--full-auto', '--sandbox', 'read-only', '--approval', 'allow', '--yolo', 't',
+  ])
+  assert.equal(invocation.permissionMode, 'danger-full-access')
+  assert.equal(invocation.approvalPolicy, 'never')
+  assert.equal(invocation.autoApprove, false)
+})
+
+test('--full-auto keeps an explicit --sandbox', () => {
+  const invocation = parse(['--sandbox', 'read-only', '--full-auto', 't'])
+  assert.equal(invocation.permissionMode, 'read-only')
+  assert.equal(invocation.autoApprove, true)
+  assert.equal(invocation.approvalPolicy, 'ask')
+})
+
+test('--approval never is auto-deny; ask is fail-closed', () => {
+  const never = parse(['--approval', 'never', 't'])
+  assert.equal(never.approvalPolicy, 'never')
+  assert.equal(never.autoApprove, false)
+  const ask = parse(['--approval', 'ask', 't'])
+  assert.equal(ask.approvalPolicy, 'ask')
+  assert.equal(ask.autoApprove, false)
+})
+
+test('--config overlays approval, toolsMode, format, and provider', () => {
+  const invocation = parse([
+    '--config', 'approval=allow',
+    '--config', 'toolsMode=code',
+    '--config', 'format=json',
+    '--config', 'provider=custom-route',
+    't',
+  ])
+  assert.equal(invocation.approvalPolicy, 'ask')
+  assert.equal(invocation.autoApprove, true)
+  assert.equal(invocation.toolsMode, 'code')
+  assert.equal(invocation.format, 'json')
+  assert.equal(invocation.overrides.provider, 'custom-route')
+})
+
+test('--config permissionMode= and tools_mode= aliases', () => {
+  const invocation = parse([
+    '--config', 'permissionMode=read-only',
+    '--config', 'tools_mode=both',
+    '--config', 'mode=json',
+    't',
+  ])
+  assert.equal(invocation.permissionMode, 'read-only')
+  assert.equal(invocation.toolsMode, 'both')
+  assert.equal(invocation.format, 'json')
+})
+
+test('--config format= wins over --format; --mode wins over --format without config', () => {
+  assert.equal(parse(['--format', 'text', '--config', 'format=json', 't']).format, 'json')
+  assert.equal(parse(['--format', 'text', '--mode', 'json', 't']).format, 'json')
+  assert.equal(parse(['--mode', 'json', '--config', 'format=text', 't']).format, 'text')
+})
+
+test('--api-key is this-process DEEPSEEK_API_KEY', () => {
+  const invocation = parse(['--api-key', 'sk-test', 't'])
+  assert.deepEqual(invocation.env, [{ key: 'DEEPSEEK_API_KEY', value: 'sk-test' }])
+})
+
+test('--output-schema rejects invalid JSON', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-exec-schema-bad-'))
+  const path = join(dir, 'schema.json')
+  writeFileSync(path, 'not json')
+  assert.throws(() => parse(['--output-schema', path, 't']), /not valid JSON/)
+})
+
+test('--file rejects missing paths, directories, and bodies over 10MB', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-exec-file-bad-'))
+  assert.throws(() => parse(['-f', join(dir, 'missing.md'), 't']), /not a file/)
+  assert.throws(() => parse(['-f', dir, 't']), /not a file/)
+  const big = join(dir, 'big.bin')
+  const fd = openSync(big, 'w')
+  ftruncateSync(fd, MAX_FILE_BYTES + 1)
+  closeSync(fd)
+  assert.throws(() => parse(['-f', big, 't']), /exceeds/)
+})
+
+test('empty or whitespace-only argv is rejected unless --print-selection', () => {
+  assert.throws(() => parse([]), /a task is required/)
+  assert.throws(() => parse(['   ']), /a task is required/)
+})
+
+test('"-" on a TTY is rejected', () => {
+  assert.throws(() => parse(['-']), /requires piped stdin/)
+})
+
+test('-- stops flag parsing so later words are the task', () => {
+  const invocation = parse(['--model', 'foo', '--', '--effort', 'max', 'prove'])
+  assert.equal(invocation.overrides.model, 'foo')
+  assert.equal(invocation.overrides.effort, undefined)
+  assert.equal(invocation.task, '--effort max prove')
+})
+
+test('repeated --model: last wins', () => {
+  const invocation = parse(['--model', 'a', '--model', 'b', 't'])
+  assert.equal(invocation.overrides.model, 'b')
+})
+
+test('--timeout rejects non-positive values', () => {
+  assert.throws(() => parse(['--timeout', '-1', 't']), /positive/)
+  assert.throws(() => parse(['--timeout', 'abc', 't']), /positive/)
+})
+
+test('invalid enum flags fail closed', () => {
+  assert.throws(() => parse(['--format', 'yaml', 't']), /text or json/)
+  assert.throws(() => parse(['--tools-mode', 'all', 't']), /native/)
+  assert.throws(() => parse(['--approval', 'yes', 't']), /ask/)
+  assert.throws(() => parse(['--effort', 'ultra', 't']), /off, high, max/)
+})
+
+test('NODE_TEST_CONTEXT skips auto stdin so the test runner keeps its stdin', () => {
+  assert.equal(process.env.NODE_TEST_CONTEXT !== undefined, true)
+  assert.equal(io.shouldReadStdin(), false)
 })

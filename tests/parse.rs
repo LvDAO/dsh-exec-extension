@@ -1,3 +1,6 @@
+//! Hosted WASM argv parser. This is not the live CLI (`js/command.js`).
+//! Exec flags such as `--sandbox` are unknown here on purpose.
+
 use dsh_exec_extension::{help_text, parse_argv, Effort, ParseOutcome};
 
 fn ok(args: &[&str]) -> dsh_exec_extension::Invocation {
@@ -91,7 +94,14 @@ fn omitted_model_and_effort_leave_overrides_empty() {
 
 #[test]
 fn unknown_option_is_an_error() {
-    let message = error(&["--model", "x", "--sandbox", "t"]);
+    let message = error(&["--model", "x", "--not-a-real-flag", "t"]);
+    assert!(message.contains("unknown option"), "{message}");
+    assert!(message.contains("--not-a-real-flag"), "{message}");
+}
+
+#[test]
+fn hosted_parser_does_not_implement_live_exec_flags() {
+    let message = error(&["--sandbox", "read-only", "t"]);
     assert!(message.contains("unknown option"), "{message}");
     assert!(message.contains("--sandbox"), "{message}");
 }

@@ -2,7 +2,7 @@
 
 DeepSeek Harness **bundle**，一次性 exec，形状与官方 surface 插件相同（`dsh.bundle.patch` + `parseCmdline` + commander）。官方 `headless-startup` 只声明 `[task...]`；本包禁用该行并插入仍提供 `headlessStartup.task` 的实现，**不改** `headless-runner`。
 
-CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / `-f` 附文件，`--format json` 打 session 事件流，`--dir` 设 cwd，`--yolo` 为全开权限。模型覆盖只在进程内（Rust WASM），不写 `settings.yaml`。
+CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / `-f` 附文件，`--format json` 打 session 事件流，`--dir` 设 cwd，`--yolo` 为 danger-full-access + never。模型覆盖只在进程内（Rust WASM 的 `overlaySelection`），不写 `settings.yaml`。Live 旗标在 `js/command.js`（commander）；契约见 [AGENTS.md](AGENTS.md)。
 
 ## 安装
 
@@ -34,3 +34,5 @@ MCP、Host、HTTP、resume、`--image`、分叉 `headless-runner`。MCP 放 prof
 npm test
 DSH_BIN=/path/to/dsh npm run acceptance
 ```
+
+`npm test` 覆盖 AGENTS.md 旗标表。`npm run acceptance` 是 live `dsh --profile exec` 组合检查（不调模型）。

@@ -1,4 +1,8 @@
-//! Node-facing JSON wrappers. Hosted tests do not need this module's exports.
+//! Node-facing JSON wrappers.
+//!
+//! Live startup only calls `overlaySelection`. `parseArgv` / `helpText` exist
+//! so hosted tests can exercise the narrower WASM parser; they are not the
+//! user-facing CLI.
 
 use wasm_bindgen::prelude::wasm_bindgen;
 

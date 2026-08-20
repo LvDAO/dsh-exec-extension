@@ -2,7 +2,7 @@
 
 A DeepSeek Harness **bundle** for one-shot exec, in the same shape as official surface plugins (`dsh.bundle.patch` + `parseCmdline` + commander). Stock `headless-startup` only declares `[task...]`; this bundle disables that row and inserts a replacement that still provides `headlessStartup.task` for unmodified `headless-runner`.
 
-The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into the prompt, `@file` / `-f` attaches files, `--format json` streams session events, `--dir` sets cwd, `--yolo` is full access. Model overlay is in-process (Rust WASM) and never writes `$DSH_HOME/settings.yaml`.
+The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into the prompt, `@file` / `-f` attaches files, `--format json` streams session events, `--dir` sets cwd, `--yolo` is danger-full-access + never. Model overlay is in-process (Rust WASM `overlaySelection` only) and never writes `$DSH_HOME/settings.yaml`. Live flags are commander in `js/command.js`; see [AGENTS.md](AGENTS.md) for the contract tests pin.
 
 ## Install
 
@@ -46,3 +46,5 @@ Node ≥ 22.19. WASM is committed; `prepare` skips rustc.
 npm test
 DSH_BIN=/path/to/dsh npm run acceptance
 ```
+
+`npm test` covers the flag table in AGENTS.md. `npm run acceptance` is the live `dsh --profile exec` composition check (no API key).

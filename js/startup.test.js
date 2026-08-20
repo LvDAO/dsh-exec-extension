@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { io } from './command.js'
-import { apply, HEADLESS_STARTUP_SERVICE, internals } from './startup.js'
+import { apply, HEADLESS_STARTUP_SERVICE, internals, bindings } from './startup.js'
 
 io.isTTY = () => true
 io.readStdin = () => {
@@ -258,5 +258,142 @@ test('--tools-mode is published on the service', () => {
     assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].toolsMode, 'code')
   } finally {
     dispose()
+  }
+})
+
+test('--timeout fires appExit(1) after N seconds', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const { ctx, exits, dispose } = mockCtx(['--timeout', '1.5', 't'])
+  try {
+    const err = withCaptured('stderr', () => {
+      apply(ctx)
+      assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].task, 't')
+      assert.deepEqual(exits, [])
+      t.mock.timers.tick(1500)
+    })
+    assert.deepEqual(exits, [1])
+    assert.match(err, /timed out/)
+  } finally {
+    dispose()
+  }
+})
+
+test('--api-key sets DEEPSEEK_API_KEY until dispose', () => {
+  const previous = process.env.DEEPSEEK_API_KEY
+  delete process.env.DEEPSEEK_API_KEY
+  const { ctx, dispose } = mockCtx(['--api-key', 'sk-test', 't'])
+  try {
+    apply(ctx)
+    assert.equal(process.env.DEEPSEEK_API_KEY, 'sk-test')
+    dispose()
+    assert.equal(process.env.DEEPSEEK_API_KEY, undefined)
+  } finally {
+    if (previous === undefined) delete process.env.DEEPSEEK_API_KEY
+    else process.env.DEEPSEEK_API_KEY = previous
+  }
+})
+
+test('--provider overlays currentSelection without saveSelection', () => {
+  const { ctx, saveCalls, dispose } = mockCtx(['--provider', 'custom-route', 't'])
+  try {
+    apply(ctx)
+    assert.equal(ctx.agentDefaultModel.currentSelection().provider, 'custom-route')
+    assert.equal(saveCalls(), 0)
+  } finally {
+    dispose()
+  }
+})
+
+test('--approval ask does not install an auto-grant answerer', () => {
+  const { ctx, listeners, dispose } = mockCtx(['--approval', 'ask', 't'])
+  try {
+    apply(ctx)
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].autoApprove, false)
+    assert.equal(listeners.some((entry) => entry.event === 'approval/request'), false)
+  } finally {
+    dispose()
+  }
+})
+
+test('--approval never does not install an auto-grant answerer', () => {
+  const { ctx, listeners, dispose } = mockCtx(['--approval', 'never', 't'])
+  try {
+    apply(ctx)
+    assert.equal(ctx.provided[HEADLESS_STARTUP_SERVICE].approvalPolicy, 'never')
+    assert.equal(listeners.some((entry) => entry.event === 'approval/request'), false)
+  } finally {
+    dispose()
+  }
+})
+
+test('--yolo plus --full-auto still never auto-grants', () => {
+  const { ctx, listeners, dispose } = mockCtx(['--full-auto', '--yolo', 't'])
+  try {
+    apply(ctx)
+    const startup = ctx.provided[HEADLESS_STARTUP_SERVICE]
+    assert.equal(startup.permissionMode, 'danger-full-access')
+    assert.equal(startup.approvalPolicy, 'never')
+    assert.equal(startup.autoApprove, false)
+    assert.equal(listeners.some((entry) => entry.event === 'approval/request'), false)
+  } finally {
+    dispose()
+  }
+})
+
+test('--approval allow handler answers allowed-once', async () => {
+  const { ctx, listeners, dispose } = mockCtx(['--approval', 'allow', 't'])
+  try {
+    apply(ctx)
+    const handler = listeners.find((entry) => entry.event === 'approval/request')?.handler
+    assert.equal(typeof handler, 'function')
+    assert.equal(await handler(), 'allowed-once')
+  } finally {
+    dispose()
+  }
+})
+
+test('apply --format json writes session/event JSONL and swallows runner text', () => {
+  const runner = {
+    captured: '',
+    stdout: {
+      write(chunk) {
+        runner.captured += String(chunk)
+        return true
+      },
+    },
+  }
+  const previous = bindings.runnerIo
+  bindings.runnerIo = () => runner
+  const { ctx, listeners, dispose } = mockCtx(['--format', 'json', 't'])
+  try {
+    const out = withCaptured('stdout', () => {
+      apply(ctx)
+      const handler = listeners.find((entry) => entry.event === 'session/event')?.handler
+      assert.equal(typeof handler, 'function')
+      handler({}, { type: 'assistant', seq: 3, data: { text: 'hi' } })
+      runner.stdout.write('final answer\n')
+    })
+    assert.equal(out, `${JSON.stringify({ type: 'assistant', seq: 3, data: { text: 'hi' } })}\n`)
+    assert.equal(out.includes('final answer'), false)
+  } finally {
+    bindings.runnerIo = previous
+    dispose()
+  }
+})
+
+test('apply -o writes captured runner text on dispose', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-exec-apply-out-'))
+  const outputPath = join(dir, 'last.txt')
+  const runner = { stdout: { write() { return true } } }
+  const previous = bindings.runnerIo
+  bindings.runnerIo = () => runner
+  const { ctx, dispose } = mockCtx(['-o', outputPath, 't'])
+  try {
+    apply(ctx)
+    runner.stdout.write('final answer\n')
+    dispose()
+    assert.equal(readFileSync(outputPath, 'utf8'), 'final answer\n')
+  } finally {
+    bindings.runnerIo = previous
   }
 })
