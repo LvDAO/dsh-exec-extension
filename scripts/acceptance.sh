@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Live dsh acceptance for dsh-exec-extension. Requires Node >= 22.19 and a
-# dsh 0.1.0-rc.7 install. Does not call a provider (no API key needed for the
-# CLI/composition checks). Overlay against real AgentDefaultModelConfig is
-# js/integration.real-adm.test.js.
+# current dsh CLI (`@deepseek-ai/dsh@next`). Does not call a provider (no API
+# key needed for the CLI/composition checks). Overlay against real
+# AgentDefaultModelConfig is js/integration.real-adm.test.js.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -23,7 +23,7 @@ printf '%s\n' "$out"
 printf '%s\n' "$out" | grep -q "unknown option '--model'"
 
 echo "== install dedicated exec profile =="
-DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
+DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add @deepseek-ai/dsh-headless@next
 DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add "$ROOT"
 
 echo "== dump-config disables stock startup and injects headlessStartup =="

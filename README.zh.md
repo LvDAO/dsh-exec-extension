@@ -9,14 +9,14 @@ CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / 
 ## 安装
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@next
 dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-从 npm 安装（[dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)）。需要冻结版本时用 `dsh-exec-extension@0.1.1`。headless 请钉在 **0.1.0-rc.7**（该包的 `latest` 更旧）。npm 安装不必放行 `prepare`。
+从 npm 安装（[dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)）。跟随当前 dsh RC 通道（`next`）；本包 peer 是 caret range，新的 0.1 RC 应能解析。headless 的 npm `latest` 仍是旧 rc，请保留 `@next`。只有需要快照时才用 `@<version>` 冻结。npm 安装不必放行 `prepare`。
 
-Git 备选：`dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.1`
+Git 备选：`dsh plugin --profile exec add github:LvDAO/dsh-exec-extension`
 
 只用独立 profile。官方 `headless --model` 必须仍因未知选项失败。
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-exec-extension",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official-pattern dsh bundle: replace headless-startup with per-invocation CLI flags without writing settings",
   "license": "MIT",
   "repository": {
@@ -54,11 +54,11 @@
   },
   "dependencies": {
     "@deepseek-ai/dsh-cmdline": "^0.1.0-rc.7",
-    "@deepseek-ai/dsh-headless": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-headless": "^0.1.0-rc.7",
     "commander": "^15.0.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-headless": "0.1.0-rc.7"
+    "@deepseek-ai/dsh-headless": "^0.1.0-rc.7"
   },
   "engines": {
     "node": ">=22.19"
