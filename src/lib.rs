@@ -1,7 +1,8 @@
-//! Per-invocation model/effort/provider for DeepSeek Harness headless.
+//! In-process overlay of `agentDefaultModel.currentSelection()`.
 //!
-//! The Cordis plugin in `js/startup.js` loads this crate as WebAssembly and
-//! uses it to parse app argv and overlay `ctx.agentDefaultModel.currentSelection()`.
+//! The live CLI is commander in `js/command.js`. This crate's `parse_argv`
+//! is a hosted WASM helper used by unit tests; `js/startup.js` only calls
+//! `overlaySelection`.
 
 mod effort;
 mod overlay;

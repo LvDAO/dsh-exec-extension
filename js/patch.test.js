@@ -34,3 +34,10 @@ test('bundle patch delays sandbox, approval, and tools until headlessStartup exi
   assert.match(patch, /ctx\.headlessStartup\.approvalPolicy/)
   assert.match(patch, /ctx\.headlessStartup\.toolsMode/)
 })
+
+test('bundle patch quotes the approval !!js ternary', () => {
+  assert.match(
+    patch,
+    /policy:\s*!!js\s+"ctx\.headlessStartup\.approvalPolicy/,
+  )
+})

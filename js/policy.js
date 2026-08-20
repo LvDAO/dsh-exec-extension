@@ -111,18 +111,16 @@ export function parseThinking(raw, program) {
  */
 export function resolvePolicy(input) {
   const { program } = input
-  let permissionMode = parseSandbox(input.sandbox ?? input.permissionMode ?? 'workspace-write', program)
+  const permissionMode = parseSandbox(input.sandbox ?? input.permissionMode ?? 'workspace-write', program)
 
+  // `--yolo` skips permission prompts (auto-allow). It does not open the sandbox.
   const yolo = input.yolo === true
-  if (yolo) permissionMode = 'danger-full-access'
-
+  let autoApprove = input.fullAuto === true || yolo
   let approval = input.approval
-  let autoApprove = false
-  if (input.fullAuto === true) autoApprove = true
-  if (yolo) {
-    approval = approval ?? 'never'
-    autoApprove = false
-  } else if (permissionMode === 'danger-full-access' && approval === undefined) {
+
+  // Unrestricted sandbox defaults to `never` (auto-deny) unless the user
+  // asked to skip prompts or passed `--approval`.
+  if (permissionMode === 'danger-full-access' && approval === undefined && !yolo && input.fullAuto !== true) {
     approval = 'never'
   }
 

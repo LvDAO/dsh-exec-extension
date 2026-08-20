@@ -31,7 +31,7 @@ dsh --profile exec @notes.md "answer from the notes"
 | `-s, --sandbox` / `--permission-mode` | `read-only` \| `workspace-write` \| `danger-full-access` |
 | `--approval ask\|never\|allow` | `ask` fail-closes without a UI; `never` auto-denies; `allow` auto-grants |
 | `--full-auto` | workspace-write + auto-allow (CI) |
-| `--yolo` / `--dangerously-skip-permissions` | danger-full-access + never (OpenCode) |
+| `--yolo` / `--dangerously-skip-permissions` | Skip permission prompts (auto-allow); does not disable the sandbox |
 | `--tools-mode native\|code\|both` | Tools presentation |
 | `-f, --file` / `@path` | Attach file text into the task |
 | `--output-schema <path>` | Prompt-level JSON Schema constraint (not constrained decode) |

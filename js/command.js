@@ -140,7 +140,7 @@ export function makeProgram() {
     .option('--permission-mode <mode>', 'alias of --sandbox')
     .option('--approval <ask|never|allow>', 'headless approval: ask (fail-closed), never (auto-deny), allow (auto-grant)')
     .option('--full-auto', 'workspace-write + auto-allow approvals (CI)', false)
-    .option('--yolo', 'danger-full-access + approval never (OpenCode)', false)
+    .option('--yolo', 'skip permission prompts (auto-allow); does not disable the sandbox', false)
     .option('--dangerously-skip-permissions', 'alias of --yolo', false)
     .option('--tools-mode <native|code|both>', 'this-process tools presentation')
     .option('-f, --file <path>', 'attach a file into the task (repeatable, OpenCode -f / Pi @file)', collect, [])

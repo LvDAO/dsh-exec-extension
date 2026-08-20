@@ -33,11 +33,18 @@ printf '%s\n' "$dump" | grep -q 'id: exec-extension-startup'
 printf '%s\n' "$dump" | grep -q 'name: dsh-exec-extension/startup'
 printf '%s\n' "$dump" | grep -q 'ctx.headlessStartup.permissionMode'
 printf '%s\n' "$dump" | grep -q 'ctx.headlessStartup.approvalPolicy'
+printf '%s\n' "$dump" | grep -q 'ctx.headlessStartup.toolsMode'
+printf '%s\n' "$dump" | grep -q 'ctx.headlessStartup.cwd'
 
 echo "== exec --help lists flags =="
 help="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --help)"
 printf '%s\n' "$help"
-for flag in --model --effort --sandbox --approval --full-auto --file --format --output-schema --tools-mode --thinking; do
+for flag in \
+  --model --effort --sandbox --approval --full-auto --file --format \
+  --output-schema --tools-mode --thinking --yolo --timeout --api-key \
+  --print-selection --permission-mode --cwd --env --dangerously-skip-permissions \
+  --output-last-message --provider
+do
   printf '%s\n' "$help" | grep -q -- "$flag"
 done
 
@@ -51,6 +58,11 @@ echo "== --print-selection does not require a task =="
 sel_out="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --print-selection --model deepseek-v4-pro --effort max 2>&1 || true)"
 printf '%s\n' "$sel_out"
 printf '%s\n' "$sel_out" | grep -q 'deepseek-v4-pro'
+
+echo "== --print-selection --config does not require a task =="
+cfg_out="$(DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --print-selection --config model=deepseek-v4-pro 2>&1 || true)"
+printf '%s\n' "$cfg_out"
+printf '%s\n' "$cfg_out" | grep -q 'deepseek-v4-pro'
 
 echo "== stdin merge does not write settings =="
 printf 'piped body\n' | DSH_HOME="$EXEC_HOME" "$DSH_BIN" --profile exec --sandbox read-only "summarize" >/dev/null 2>&1 || true
