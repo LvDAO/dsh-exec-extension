@@ -1,3 +1,14 @@
+# Trusted publishing (OIDC). Do not set NODE_AUTH_TOKEN / NPM_TOKEN here —
+# a token forces classic auth and OIDC will not run.
+#
+# npmjs.com cannot attach a trusted publisher until the package exists, so
+# the first version is still a local `npm publish --otp=...`. After that:
+#   Package → Settings → Trusted Publisher → GitHub Actions
+#     Organization or user: LvDAO
+#     Repository: dsh-exec-extension
+#     Workflow filename: npm-publish.yml
+#     Allowed actions: npm publish
+# Then re-run this workflow (or publish the next GitHub Release).
 name: npm-publish
 
 on:
@@ -15,11 +26,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.22'
+          node-version: '24'
           registry-url: https://registry.npmjs.org
-          cache: npm
       - run: npm ci
       - name: Publish
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
