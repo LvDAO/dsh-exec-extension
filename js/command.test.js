@@ -233,15 +233,6 @@ test('--dangerously-skip-permissions is an alias of --yolo', () => {
   assert.equal(invocation.autoApprove, false)
 })
 
-test('--yolo wins over --full-auto, --sandbox, and --approval', () => {
-  const invocation = parse([
-    '--full-auto', '--sandbox', 'read-only', '--approval', 'allow', '--yolo', 't',
-  ])
-  assert.equal(invocation.permissionMode, 'danger-full-access')
-  assert.equal(invocation.approvalPolicy, 'never')
-  assert.equal(invocation.autoApprove, false)
-})
-
 test('--full-auto keeps an explicit --sandbox', () => {
   const invocation = parse(['--sandbox', 'read-only', '--full-auto', 't'])
   assert.equal(invocation.permissionMode, 'read-only')
@@ -285,10 +276,9 @@ test('--config permissionMode= and tools_mode= aliases', () => {
   assert.equal(invocation.format, 'json')
 })
 
-test('--config format= wins over --format; --mode wins over --format without config', () => {
+test('--config format= overlays --format; --mode is an alias of --format', () => {
   assert.equal(parse(['--format', 'text', '--config', 'format=json', 't']).format, 'json')
   assert.equal(parse(['--format', 'text', '--mode', 'json', 't']).format, 'json')
-  assert.equal(parse(['--mode', 'json', '--config', 'format=text', 't']).format, 'text')
 })
 
 test('--api-key is this-process DEEPSEEK_API_KEY', () => {

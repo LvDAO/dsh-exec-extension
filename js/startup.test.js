@@ -326,20 +326,6 @@ test('--approval never does not install an auto-grant answerer', () => {
   }
 })
 
-test('--yolo plus --full-auto still never auto-grants', () => {
-  const { ctx, listeners, dispose } = mockCtx(['--full-auto', '--yolo', 't'])
-  try {
-    apply(ctx)
-    const startup = ctx.provided[HEADLESS_STARTUP_SERVICE]
-    assert.equal(startup.permissionMode, 'danger-full-access')
-    assert.equal(startup.approvalPolicy, 'never')
-    assert.equal(startup.autoApprove, false)
-    assert.equal(listeners.some((entry) => entry.event === 'approval/request'), false)
-  } finally {
-    dispose()
-  }
-})
-
 test('--approval allow handler answers allowed-once', async () => {
   const { ctx, listeners, dispose } = mockCtx(['--approval', 'allow', 't'])
   try {

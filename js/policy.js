@@ -111,25 +111,18 @@ export function parseThinking(raw, program) {
  */
 export function resolvePolicy(input) {
   const { program } = input
-  // Validate any explicit mode/approval even when a preset will ignore the value.
-  if (input.sandbox !== undefined) parseSandbox(input.sandbox, program)
-  if (input.permissionMode !== undefined) parseSandbox(input.permissionMode, program)
-  if (input.approval !== undefined) parseApproval(input.approval, program)
+  let permissionMode = parseSandbox(input.sandbox ?? input.permissionMode ?? 'workspace-write', program)
 
-  // `--yolo` / `--dangerously-skip-permissions` is a preset: danger-full-access + never.
-  // It wins over `--sandbox`, `--approval`, and `--full-auto`.
-  if (input.yolo === true) {
-    return {
-      permissionMode: 'danger-full-access',
-      approvalPolicy: 'never',
-      autoApprove: false,
-    }
-  }
+  const yolo = input.yolo === true
+  if (yolo) permissionMode = 'danger-full-access'
 
-  const permissionMode = parseSandbox(input.sandbox ?? input.permissionMode ?? 'workspace-write', program)
-  let autoApprove = input.fullAuto === true
   let approval = input.approval
-  if (permissionMode === 'danger-full-access' && approval === undefined) {
+  let autoApprove = false
+  if (input.fullAuto === true) autoApprove = true
+  if (yolo) {
+    approval = approval ?? 'never'
+    autoApprove = false
+  } else if (permissionMode === 'danger-full-access' && approval === undefined) {
     approval = 'never'
   }
 
