@@ -45,7 +45,7 @@ dsh --profile exec @notes.md --full-auto "use the notes"
 
 未知旗标报错。Overlay 从不调用 `saveSelection()`。
 
-`--output-schema` 只是 **prompt 约束**，不是解码期强制。`--approval allow` 会装本进程 auto-grant：dsh 的 `never` 是自动拒绝，headless 又没有审批 UI。
+`--output-schema` 只是 **prompt 约束**，不是解码期强制。`--approval allow` 与 `--yolo` 会装本进程 auto-grant：dsh 的 `never` 是自动拒绝，headless 又没有审批 UI。`--yolo` 不会改成 `danger-full-access`；要全开请用 `--sandbox danger-full-access`。
 
 `headlessStartup` 为 `{ task, cwd, permissionMode, approvalPolicy, autoApprove, toolsMode?, format }`。sandbox-policy / approval / tools 通过 `!!js ctx.headlessStartup.*` 注入。官方 `headless-runner` 仍只读 `task`。
 

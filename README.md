@@ -45,7 +45,7 @@ dsh --profile exec @notes.md --full-auto "use the notes"
 
 Unknown flags error. Overlay never calls `saveSelection()`.
 
-`--output-schema` is a **prompt constraint**, not constrained decoding. `--approval allow` installs a process-local auto-grant because dsh `never` auto-**denies** and headless has no UI.
+`--output-schema` is a **prompt constraint**, not constrained decoding. `--approval allow` and `--yolo` install a process-local auto-grant because dsh `never` auto-**denies** and headless has no UI. `--yolo` does not set `danger-full-access`; use `--sandbox danger-full-access` for unrestricted tools.
 
 `headlessStartup` is `{ task, cwd, permissionMode, approvalPolicy, autoApprove, toolsMode?, format }`. sandbox-policy, approval, and tools inject that service (`!!js ctx.headlessStartup.*`). Stock `headless-runner` still only reads `task`.
 
