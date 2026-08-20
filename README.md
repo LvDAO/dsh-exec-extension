@@ -8,9 +8,11 @@ The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into t
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
-dsh plugin --profile exec add ./dsh-exec-extension
+dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.0
 dsh --profile exec --help
 ```
+
+Pin the git ref (`#v0.1.0`). After an npm publish, `dsh plugin --profile exec add dsh-exec-extension@0.1.0` works too and does not need a `prepare` allowlist.
 
 Dedicated profile only. Stock `dsh --profile headless --model x "t"` must still fail.
 
