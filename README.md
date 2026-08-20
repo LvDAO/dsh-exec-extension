@@ -9,12 +9,12 @@ The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into t
 ## Install
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless@next
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@$(npm view @deepseek-ai/dsh version)
 dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Follow the current dsh RC line (`next`); this package's peer is a caret range, so newer 0.1 RCs should resolve. Headless npm `latest` is still an older rc — keep the `@next` tag. Freeze with `@<version>` only when you need a snapshot. npm install does not need a `prepare` allowlist.
+Follow the **same npm `latest` channel as the dsh CLI** (`npx @deepseek-ai/dsh` / `npm install --global @deepseek-ai/dsh`). Do not use `@next` unless you installed `dsh@next`. `@deepseek-ai/dsh-headless` has a stale `latest` tag, so the first line takes the CLI's `latest` version instead of headless's own. `dsh-exec-extension` uses its own `latest`. Freeze with `@<version>` only when you need a snapshot. npm install does not need a `prepare` allowlist.
 
 Git fallback: `dsh plugin --profile exec add github:LvDAO/dsh-exec-extension`
 

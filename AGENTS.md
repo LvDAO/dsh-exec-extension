@@ -3,12 +3,12 @@
 Official-pattern DeepSeek Harness **bundle**. One-shot exec in the spirit of `opencode run` and `pi -p`: argv + piped stdin, file attachments, this-process model/sandbox flags, no settings writes.
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless@next
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@$(npm view @deepseek-ai/dsh version)
 dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Follow the current dsh RC line (`next`); do not pin a rc in the README. Git fallback: `github:LvDAO/dsh-exec-extension`. Use a dedicated profile; do not add this to stock `headless`.
+Follow the dsh CLI npm `latest` channel (`npx @deepseek-ai/dsh`), not `@next`. Headless's own `latest` tag is stale, so the first line uses the CLI version. Git fallback: `github:LvDAO/dsh-exec-extension`. Use a dedicated profile; do not add this to stock `headless`.
 
 ## CLI
 

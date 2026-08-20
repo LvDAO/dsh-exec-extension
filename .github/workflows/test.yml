@@ -22,6 +22,6 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Install dsh CLI
-        run: npm install --global pnpm @deepseek-ai/dsh@next
+        run: npm install --global pnpm @deepseek-ai/dsh
       - name: Live acceptance
         run: npm run acceptance

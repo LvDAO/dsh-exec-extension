@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Live dsh acceptance for dsh-exec-extension. Requires Node >= 22.19 and a
-# current dsh CLI (`@deepseek-ai/dsh@next`). Does not call a provider (no API
-# key needed for the CLI/composition checks). Overlay against real
-# AgentDefaultModelConfig is js/integration.real-adm.test.js.
+# dsh CLI from the default npm latest channel (`@deepseek-ai/dsh`, not
+# `@next`). Does not call a provider (no API key needed for the
+# CLI/composition checks). Overlay against real AgentDefaultModelConfig is
+# js/integration.real-adm.test.js.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -23,7 +24,16 @@ printf '%s\n' "$out"
 printf '%s\n' "$out" | grep -q "unknown option '--model'"
 
 echo "== install dedicated exec profile =="
-DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add @deepseek-ai/dsh-headless@next
+dsh_ver="$(node --input-type=commonjs -e '
+  const { createRequire } = require("module")
+  const { realpathSync } = require("fs")
+  try {
+    process.stdout.write(createRequire(realpathSync(process.argv[1]))("@deepseek-ai/dsh/package.json").version)
+  } catch {
+    process.exit(1)
+  }
+' "$DSH_BIN" 2>/dev/null || npm view @deepseek-ai/dsh version)"
+DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add "@deepseek-ai/dsh-headless@${dsh_ver}"
 DSH_HOME="$EXEC_HOME" "$DSH_BIN" plugin --profile exec add "$ROOT"
 
 echo "== dump-config disables stock startup and injects headlessStartup =="

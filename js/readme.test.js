@@ -85,18 +85,22 @@ test('README documents official-pattern bundle and OpenCode/Pi exec', () => {
 test('README install: dedicated exec profile; stock headless must reject --model', () => {
   const installEn = readmeEn.split('## Install')[1].split('## ')[0]
   const installZh = readmeZh.split('## 安装')[1].split('## ')[0]
+  const fenceEn = installEn.split('```sh')[1].split('```')[0]
+  const fenceZh = installZh.split('```sh')[1].split('```')[0]
   assert.match(readmeEn, /--profile exec/)
-  assert.match(installEn, /dsh plugin --profile exec add @deepseek-ai\/dsh-headless@next/)
-  assert.match(installEn, /dsh plugin --profile exec add dsh-exec-extension/)
-  assert.doesNotMatch(installEn, /@0\.\d+\.\d+/)
-  assert.doesNotMatch(installEn, /#v0\.\d+/)
+  assert.match(fenceEn, /dsh plugin --profile exec add @deepseek-ai\/dsh-headless@\$\(npm view @deepseek-ai\/dsh version\)/)
+  assert.match(fenceEn, /dsh plugin --profile exec add dsh-exec-extension/)
+  assert.doesNotMatch(fenceEn, /@next/)
+  assert.doesNotMatch(fenceEn, /@0\.\d+\.\d+/)
+  assert.doesNotMatch(fenceEn, /#v0\.\d+/)
   assert.match(readmeEn, /www\.npmjs\.com\/package\/dsh-exec-extension/)
   assert.match(readmeEn, /Dedicated profile only/)
   assert.match(readmeEn, /headless --model/)
-  assert.match(installZh, /dsh plugin --profile exec add @deepseek-ai\/dsh-headless@next/)
-  assert.match(installZh, /dsh plugin --profile exec add dsh-exec-extension/)
-  assert.doesNotMatch(installZh, /@0\.\d+\.\d+/)
-  assert.doesNotMatch(installZh, /#v0\.\d+/)
+  assert.match(fenceZh, /dsh plugin --profile exec add @deepseek-ai\/dsh-headless@\$\(npm view @deepseek-ai\/dsh version\)/)
+  assert.match(fenceZh, /dsh plugin --profile exec add dsh-exec-extension/)
+  assert.doesNotMatch(fenceZh, /@next/)
+  assert.doesNotMatch(fenceZh, /@0\.\d+\.\d+/)
+  assert.doesNotMatch(fenceZh, /#v0\.\d+/)
   assert.match(readmeZh, /www\.npmjs\.com\/package\/dsh-exec-extension/)
   assert.match(readmeZh, /独立 profile/)
   assert.match(readmeZh, /headless --model/)
