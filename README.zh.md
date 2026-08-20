@@ -8,9 +8,11 @@ CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / 
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
-dsh plugin --profile exec add ./dsh-exec-extension
+dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.0
 dsh --profile exec --help
 ```
+
+请钉住 git ref（`#v0.1.0`）。若已发布到 npm，也可用 `dsh plugin --profile exec add dsh-exec-extension@0.1.0`，且不必放行 `prepare`。
 
 只用独立 profile。官方 `headless --model` 必须仍因未知选项失败。
 
