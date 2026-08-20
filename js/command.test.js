@@ -154,11 +154,11 @@ test('--full-auto auto-approves and keeps default workspace-write', () => {
   assert.equal(invocation.approvalPolicy, 'ask')
 })
 
-test('--yolo is danger-full-access and never-ask', () => {
+test('--yolo auto-allows and does not open the sandbox', () => {
   const invocation = parse(['--yolo', 't'])
-  assert.equal(invocation.permissionMode, 'danger-full-access')
-  assert.equal(invocation.approvalPolicy, 'never')
-  assert.equal(invocation.autoApprove, false)
+  assert.equal(invocation.permissionMode, 'workspace-write')
+  assert.equal(invocation.approvalPolicy, 'ask')
+  assert.equal(invocation.autoApprove, true)
 })
 
 test('--approval allow is ask + auto-grant', () => {
@@ -228,9 +228,9 @@ test('--permission-mode is an alias of --sandbox; -s wins if both are set', () =
 
 test('--dangerously-skip-permissions is an alias of --yolo', () => {
   const invocation = parse(['--dangerously-skip-permissions', 't'])
-  assert.equal(invocation.permissionMode, 'danger-full-access')
-  assert.equal(invocation.approvalPolicy, 'never')
-  assert.equal(invocation.autoApprove, false)
+  assert.equal(invocation.permissionMode, 'workspace-write')
+  assert.equal(invocation.approvalPolicy, 'ask')
+  assert.equal(invocation.autoApprove, true)
 })
 
 test('--full-auto keeps an explicit --sandbox', () => {

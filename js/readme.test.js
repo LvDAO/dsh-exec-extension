@@ -78,7 +78,8 @@ test('README documents official-pattern bundle and OpenCode/Pi exec', () => {
   assert.match(readmeEn, /Pi/)
   assert.match(readmeZh, /dsh\.bundle\.patch/)
   assert.match(readmeZh, /headless-runner/)
-  assert.match(readmeZh, /全开权限/)
+  assert.match(readmeEn, /does \*\*not\*\* disable the sandbox/)
+  assert.match(readmeZh, /不是全开权限/)
 })
 
 test('README install: dedicated exec profile; stock headless must reject --model', () => {
@@ -154,11 +155,17 @@ test('--dir / --cwd / --cd set the working directory', () => {
   assert.equal(parse(['--cd', dir, 't']).cwd, dir)
 })
 
-test('--yolo is full access: danger-full-access + never', () => {
+test('--yolo skips permission prompts and does not open the sandbox', () => {
   const invocation = parse(['--yolo', 't'])
-  assert.equal(invocation.permissionMode, 'danger-full-access')
-  assert.equal(invocation.approvalPolicy, 'never')
-  assert.equal(parse(['--dangerously-skip-permissions', 't']).permissionMode, 'danger-full-access')
+  assert.equal(invocation.permissionMode, 'workspace-write')
+  assert.equal(invocation.autoApprove, true)
+  assert.equal(invocation.approvalPolicy, 'ask')
+  const alias = parse(['--dangerously-skip-permissions', 't'])
+  assert.equal(alias.permissionMode, 'workspace-write')
+  assert.equal(alias.autoApprove, true)
+  const sandboxed = parse(['--sandbox', 'read-only', '--yolo', 't'])
+  assert.equal(sandboxed.permissionMode, 'read-only')
+  assert.equal(sandboxed.autoApprove, true)
 })
 
 test('--full-auto is workspace-write + auto-allow', () => {

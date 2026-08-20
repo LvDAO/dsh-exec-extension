@@ -2,7 +2,7 @@
 
 DeepSeek Harness **bundle**，一次性 exec，形状与官方 surface 插件相同（`dsh.bundle.patch` + `parseCmdline` + commander）。官方 `headless-startup` 只声明 `[task...]`；本包禁用该行并插入仍提供 `headlessStartup.task` 的实现，**不改** `headless-runner`。
 
-CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / `-f` 附文件，`--format json` 打 session 事件流，`--dir` 设 cwd，`--yolo` 为全开权限。模型覆盖只在进程内（Rust WASM），不写 `settings.yaml`。
+CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / `-f` 附文件，`--format json` 打 session 事件流，`--dir` 设 cwd，`--yolo` 跳过审批询问（**不**关闭 sandbox，不是全开权限）。模型覆盖只在进程内（Rust WASM），不写 `settings.yaml`。
 
 ## 安装
 
@@ -33,7 +33,7 @@ dsh --profile exec @notes.md --full-auto "use the notes"
 | `-s, --sandbox` / `--permission-mode` | `read-only` \| `workspace-write` \| `danger-full-access` |
 | `--approval ask\|never\|allow` | `ask` 无 UI 则 fail-closed；`never` 自动拒绝；`allow` 自动批准 |
 | `--full-auto` | workspace-write + auto-allow（CI） |
-| `--yolo` / `--dangerously-skip-permissions` | danger-full-access + never（全开权限） |
+| `--yolo` / `--dangerously-skip-permissions` | 跳过审批询问（auto-allow）。**不**设 `danger-full-access`；默认 sandbox 仍是 `workspace-write`。全开权限请用 `--sandbox danger-full-access` |
 | `--tools-mode native\|code\|both` | 工具呈现 |
 | `-f, --file` / `@path` | 把文件正文附进 task |
 | `--output-schema <path>` | **prompt 约束** JSON Schema，不是解码期强制 |

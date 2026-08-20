@@ -33,11 +33,17 @@ test('--full-auto is workspace-write + auto-allow', () => {
   assert.equal(policy.autoApprove, true)
 })
 
-test('--yolo is danger-full-access + never', () => {
+test('--yolo skips prompts (auto-allow) and does not open the sandbox', () => {
   const policy = resolvePolicy({ yolo: true, program: program() })
-  assert.equal(policy.permissionMode, 'danger-full-access')
-  assert.equal(policy.approvalPolicy, 'never')
-  assert.equal(policy.autoApprove, false)
+  assert.equal(policy.permissionMode, 'workspace-write')
+  assert.equal(policy.approvalPolicy, 'ask')
+  assert.equal(policy.autoApprove, true)
+})
+
+test('--yolo keeps an explicit --sandbox', () => {
+  const policy = resolvePolicy({ yolo: true, sandbox: 'read-only', program: program() })
+  assert.equal(policy.permissionMode, 'read-only')
+  assert.equal(policy.autoApprove, true)
 })
 
 test('--approval never auto-denies; allow auto-grants; ask fail-closes', () => {

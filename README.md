@@ -2,7 +2,7 @@
 
 A DeepSeek Harness **bundle** for one-shot exec, in the same shape as official surface plugins (`dsh.bundle.patch` + `parseCmdline` + commander). Stock `headless-startup` only declares `[task...]`; this bundle disables that row and inserts a replacement that still provides `headlessStartup.task` for unmodified `headless-runner`.
 
-The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into the prompt, `@file` / `-f` attaches files, `--format json` streams session events, `--dir` sets cwd, `--yolo` is full access. Model overlay is in-process (Rust WASM) and never writes `$DSH_HOME/settings.yaml`.
+The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into the prompt, `@file` / `-f` attaches files, `--format json` streams session events, `--dir` sets cwd, `--yolo` skips permission prompts (it does **not** disable the sandbox). Model overlay is in-process (Rust WASM) and never writes `$DSH_HOME/settings.yaml`.
 
 ## Install
 
@@ -33,7 +33,7 @@ dsh --profile exec @notes.md --full-auto "use the notes"
 | `-s, --sandbox` / `--permission-mode` | `read-only` \| `workspace-write` \| `danger-full-access` |
 | `--approval ask\|never\|allow` | `ask` fail-closes without a UI; `never` auto-denies; `allow` auto-grants |
 | `--full-auto` | workspace-write + auto-allow (CI) |
-| `--yolo` / `--dangerously-skip-permissions` | danger-full-access + never (OpenCode); full access |
+| `--yolo` / `--dangerously-skip-permissions` | Skip permission prompts (auto-allow). Does **not** set `danger-full-access`; default sandbox stays `workspace-write`. Unrestricted access is `--sandbox danger-full-access` |
 | `--tools-mode native\|code\|both` | Tools presentation |
 | `-f, --file` / `@path` | Attach file text into the task |
 | `--output-schema <path>` | Prompt-level JSON Schema constraint (**not** constrained decode) |
