@@ -1,5 +1,7 @@
 # dsh-exec-extension
 
+[npm](https://www.npmjs.com/package/dsh-exec-extension) · [English](https://github.com/LvDAO/dsh-exec-extension/blob/main/README.md)
+
 DeepSeek Harness **bundle**，一次性 exec，形状与官方 surface 插件相同（`dsh.bundle.patch` + `parseCmdline` + commander）。官方 `headless-startup` 只声明 `[task...]`；本包禁用该行并插入仍提供 `headlessStartup.task` 的实现，**不改** `headless-runner`。
 
 CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / `-f` 附文件，`--format json` 打 session 事件流，`--dir` 设 cwd，`--yolo` 跳过审批询问（**不**关闭 sandbox，不是全开权限）。模型覆盖只在进程内（Rust WASM），不写 `settings.yaml`。
@@ -8,11 +10,13 @@ CLI 对齐 **OpenCode `run`** 与 **Pi `-p`**：stdin 拼进 prompt，`@file` / 
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
-dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.0
+dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-请钉住 git ref（`#v0.1.0`）。若已发布到 npm，也可用 `dsh plugin --profile exec add dsh-exec-extension@0.1.0`，且不必放行 `prepare`。
+从 npm 安装（[dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)）。需要冻结版本时用 `dsh-exec-extension@0.1.1`。headless 请钉在 **0.1.0-rc.7**（该包的 `latest` 更旧）。npm 安装不必放行 `prepare`。
+
+Git 备选：`dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.1`
 
 只用独立 profile。官方 `headless --model` 必须仍因未知选项失败。
 

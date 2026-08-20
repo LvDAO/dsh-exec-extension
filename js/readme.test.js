@@ -84,8 +84,12 @@ test('README documents official-pattern bundle and OpenCode/Pi exec', () => {
 
 test('README install: dedicated exec profile; stock headless must reject --model', () => {
   assert.match(readmeEn, /--profile exec/)
+  assert.match(readmeEn, /dsh plugin --profile exec add dsh-exec-extension/)
+  assert.match(readmeEn, /www\.npmjs\.com\/package\/dsh-exec-extension/)
   assert.match(readmeEn, /Dedicated profile only/)
   assert.match(readmeEn, /headless --model/)
+  assert.match(readmeZh, /dsh plugin --profile exec add dsh-exec-extension/)
+  assert.match(readmeZh, /www\.npmjs\.com\/package\/dsh-exec-extension/)
   assert.match(readmeZh, /独立 profile/)
   assert.match(readmeZh, /headless --model/)
 })

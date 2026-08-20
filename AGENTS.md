@@ -4,11 +4,11 @@ Official-pattern DeepSeek Harness **bundle**. One-shot exec in the spirit of `op
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
-dsh plugin --profile exec add <this-package>
+dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-Pin headless to **0.1.0-rc.7** (or `next`). Use a dedicated profile; do not add this to stock `headless`.
+Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Pin headless to **0.1.0-rc.7** (or `next`). Git fallback: `github:LvDAO/dsh-exec-extension#v0.1.1`. Use a dedicated profile; do not add this to stock `headless`.
 
 ## CLI
 

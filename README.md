@@ -1,5 +1,7 @@
 # dsh-exec-extension
 
+[npm](https://www.npmjs.com/package/dsh-exec-extension) · [中文文档](https://github.com/LvDAO/dsh-exec-extension/blob/main/README.zh.md)
+
 A DeepSeek Harness **bundle** for one-shot exec, in the same shape as official surface plugins (`dsh.bundle.patch` + `parseCmdline` + commander). Stock `headless-startup` only declares `[task...]`; this bundle disables that row and inserts a replacement that still provides `headlessStartup.task` for unmodified `headless-runner`.
 
 The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into the prompt, `@file` / `-f` attaches files, `--format json` streams session events, `--dir` sets cwd, `--yolo` skips permission prompts (it does **not** disable the sandbox). Model overlay is in-process (Rust WASM) and never writes `$DSH_HOME/settings.yaml`.
@@ -8,11 +10,13 @@ The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into t
 
 ```sh
 dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
-dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.0
+dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-Pin the git ref (`#v0.1.0`). After an npm publish, `dsh plugin --profile exec add dsh-exec-extension@0.1.0` works too and does not need a `prepare` allowlist.
+Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Pin a release with `dsh-exec-extension@0.1.1` if you need a freeze. Pin headless to **0.1.0-rc.7** (`latest` of that package is older). npm install does not need a `prepare` allowlist.
+
+Git fallback: `dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.1`
 
 Dedicated profile only. Stock `dsh --profile headless --model x "t"` must still fail.
 
