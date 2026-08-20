@@ -1,0 +1,36 @@
+# Version updates via the GitHub dependency graph.
+# The lockfile is what CI installs; package.json keeps caret ranges so
+# consumers can follow the current dsh 0.1 RC line without a README pin.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    versioning-strategy: increase-if-necessary
+    groups:
+      deepseek-dsh:
+        patterns:
+          - "@deepseek-ai/*"
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # Bindings in js/generated/ are produced with wasm-bindgen 0.2.100.
+      - dependency-name: wasm-bindgen
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+      include: scope

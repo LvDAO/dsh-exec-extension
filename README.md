@@ -9,14 +9,14 @@ The CLI follows **OpenCode `run`** and **Pi `-p`**: piped stdin is merged into t
 ## Install
 
 ```sh
-dsh plugin --profile exec add @deepseek-ai/dsh-headless@0.1.0-rc.7
+dsh plugin --profile exec add @deepseek-ai/dsh-headless@next
 dsh plugin --profile exec add dsh-exec-extension
 dsh --profile exec --help
 ```
 
-Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Pin a release with `dsh-exec-extension@0.1.1` if you need a freeze. Pin headless to **0.1.0-rc.7** (`latest` of that package is older). npm install does not need a `prepare` allowlist.
+Install from npm ([dsh-exec-extension](https://www.npmjs.com/package/dsh-exec-extension)). Follow the current dsh RC line (`next`); this package's peer is a caret range, so newer 0.1 RCs should resolve. Headless npm `latest` is still an older rc — keep the `@next` tag. Freeze with `@<version>` only when you need a snapshot. npm install does not need a `prepare` allowlist.
 
-Git fallback: `dsh plugin --profile exec add github:LvDAO/dsh-exec-extension#v0.1.1`
+Git fallback: `dsh plugin --profile exec add github:LvDAO/dsh-exec-extension`
 
 Dedicated profile only. Stock `dsh --profile headless --model x "t"` must still fail.
 
